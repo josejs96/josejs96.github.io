@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  
+    <!-- leaflet css -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+    />
+ 
+    <link rel="stylesheet" href="dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="dist/MarkerCluster.Default.css" />
+    
+    <title>Leaflet markercluster | GeoDev</title>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0%;
+      }
+
+      #map {
+        width: 100%;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+</html>
+
+<!-- geojson data  -->
+<script type="text/javascript" src="aparcamientos.js"> </script>
+<script type="text/javascript" src="farmacia_elegida.js"> </script>
+<script type="text/javascript" src="farmacias.js"> </script>
+<script type="text/javascript" src="farmacias_potenciales_aparcamiento.js"> </script>
+<script type="text/javascript" src="farmacias_prometedoras.js"> </script>
+<script type="text/javascript" src="hospitales.js"> </script>
+<script type="text/javascript" src="paradas.js"> </script>
+
+<!-- leaflet js  -->
+<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+
+<!-- markercluster  -->
+<script src="dist/leaflet.markercluster.js"></script>
+
+<script>
+  var mapa = L.map("map").setView([39.4709,-0.3762], 13);
+  var osm = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }
+  ).addTo(mapa);
+
+  var farmacias_estilo = {
+    radius: 8,
+    fillColor:"#0a7e00" ,
+    color: "#63ff55",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8,
+  };
+
+var hospitales_estilo = {
+    radius: 8, 
+    fillColor:"#ffbbbb",
+    color: "#c60000",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8,
+  };
+
+  var paradas_estilo = {
+    radius: 8,
+   fillColor:"#c60000",
+    color: "#ffbbbb",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8,
+  };
+  var aparcamientos_estilo = {
+    radius: 8,
+    fillColor:"#000ba8" ,
+    color: "#00e4a8",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8,
+  };
+
+var estilo_farmacias_potenciales = {
+fillColor:"#8389ff" ,
+color: "#000568",
+fillOpacity: 0.5,
+};
+
+var estilo_farmacias_prometedoras = {
+fillColor:"#ec9194" ,
+color: "#6a0002",
+fillOpacity: 0.5,
+};
+
+var estilo_farmacia_elegida = {
+fillColor:"#005f08" ,
+color: "#003a05",
+fillOpacity: 0.5,
+};
+
+var capa_aparcamientos = L.markerClusterGroup();
+L.geoJSON(aparcamientos,{
+pointToLayer: function (feature, latlng) {
+      return capa_aparcamientos.addLayer(L.circleMarker(latlng, aparcamientos_estilo))
+    }})
+var capa_farmacias = L.markerClusterGroup();
+L.geoJSON(farmacias,{
+pointToLayer: function (feature, latlng) {
+      return capa_farmacias.addLayer(L.circleMarker(latlng, farmacias_estilo))
+    }})
+var capa_hospitales = L.markerClusterGroup();
+L.geoJSON(hospitales,{
+pointToLayer: function (feature, latlng) {
+      return capa_hospitales.addLayer(L.circleMarker(latlng, hospitales_estilo))
+    }})
+var capa_paradas = L.markerClusterGroup();
+L.geoJSON(paradas,{
+pointToLayer: function (feature, latlng) {
+      return capa_paradas.addLayer(L.circleMarker(latlng, paradas_estilo))
+    }})
+
+var capa_farmacias_potenciales_aparcamiento=L.geoJSON(farmacias_potenciales_aparcamiento,{style: estilo_farmacias_potenciales});
+var capa_farmacias_prometedoras=L.geoJSON(farmacias_prometedoras,{style: estilo_farmacias_prometedoras});
+var capa_farmacia_elegida=L.geoJSON(farmacia_elegida,{style: estilo_farmacia_elegida});
+
+var mapasbase ={"OpenStreetMAp":osm}; 
+
+var superpuestos ={"<h1>Primer filtro según población y Hospitales/CS</h1>":capa_farmacias_prometedoras,
+"<h1>Segundo filtro según paradas y aparcamientos (movilidad reducida)</h1>": capa_farmacias_potenciales_aparcamiento,
+"<h1>Tercer filtro: Ubicación elegida</h1>":capa_farmacia_elegida,
+"<h1>Aparcamientos (movilidad reducida)</h1>":capa_aparcamientos,
+"<h1>Farmacias</h1>":capa_farmacias,
+"<h1>Hospitales y Centros de salud</h1>":capa_hospitales,
+"<h1>Paradas de bus</h1>": capa_paradas,
+}; 
+ mapa.addLayer(capa_farmacias_prometedoras);
+
+L.control.layers(mapasbase, superpuestos).addTo(mapa);
+
+
+</script>
+  

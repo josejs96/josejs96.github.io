@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8"> 
+<head>
+	
+	<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/build/ol.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/css/ol.css" type="text/css">
+
+ <!-- Añadimos el control de capas en openlayers -->
+<link rel="stylesheet" href="ol-layerswitcher-master/src/ollayerswitcher.css" type="text/css"/>
+<script src="ol-layerswitcher-master/dist/ol-layerswitcher.js"></script>
+
+<style>
+	.mibloque {
+	width: 90%;
+	height: 600px;
+	box-shadow: 50px 50px 50px rgb(255, 0, 0);
+	}
+	.ol-mouse-position {
+		font-size:18px;
+		font-family: Arial black;
+		top:5px;
+		right:5px;
+		position:absolute;
+		color: rgb(255, 0, 0);
+	}
+
+
+
+</style>
+</head>
+<body>
+	<h1>Zonas afectadas por riesgo de inundación</h1>
+	<div id='mibloquemapa' class="mibloque"></div>
+<script type="text/javascript">
+	
+	var controles = ol.control.defaults().extend([
+		new ol.control.FullScreen(),
+		new ol.control.ZoomSlider(),
+		new ol.control.ScaleLine(),
+		new ol.control.ZoomToExtent (),
+		new ol.control.MousePosition({projection: 'EPSG:4326',coordinateFormat: function(coordinate) { return ol.coordinate.format(coordinate, '{y}, {x}', 6); }
+ }), 
+		]);
+
+var Estilo_Superficies = function(feature) {return [new ol.style.Style({
+ fill: new ol.style.Fill({
+color: 'orange',
+}),
+})];
+};
+
+var Estilo_Lineas = [
+ new ol.style.Style({
+ stroke: new ol.style.Stroke({
+ color: 'red',
+ width: 3}),
+ })];
+
+var CapaBase= new ol.layer.Tile ({ title: 'Capa base OSM', type:'base',visible:false, source: new ol.source.OSM()});
+var MapaPNOA = new ol.layer.Image({ title: 'Capa base PNOA',type:'base', visible:true,
+ source: new ol.source.ImageWMS({url: 'http://www.ign.es/wms-inspire/pnoa-ma', params: {LAYERS: 'OI.OrthoimageCoverage'},})
+});
+var CapaBaseStamen = new ol.layer.Tile({title: 'Capa base stamen',type:'base', visible:false,source: new ol.source.Stamen({layer:'toner'})});
+var CapaBaseBing = new ol.layer.Tile({ title: 'Capa base Bing',type:'base', visible:false,source: new ol.source.BingMaps({key:
+'AkGbxXx6tDWf1swIhPJyoAVp06H0s0gDTYslNWWHZ6RoPqMpB9ld5FY1WutX8UoF',imagerySet:'Road'})});
+
+var MapaRasterIGN = new ol.layer.Image({ title: 'Capa base IGN',type:'base', visible:false,source: new ol.source.ImageWMS({ 
+	url: 'http://www.ign.es/wms-inspire/mapa-raster',params: {LAYERS: 'mtn_rasterizado'},})
+});
+
+var fuente1 = new ol.source.Vector ({
+	format: new ol.format.GeoJSON(),
+		url:'Parcelas_de_catastro.geojson'
+	});
+
+var fuente2 = new ol.source.Vector ({
+	format: new ol.format.GeoJSON(),
+		url:'Limite_costas.geojson'
+	});
+
+var capa_superficial= new ol.layer.Vector ({
+ title:'Parcelas de catastro',
+ source: fuente1,
+ projection: 'EPSG:4326',
+ style:Estilo_Superficies,
+ visible:true,
+});
+
+var capa_lineal= new ol.layer.Vector ({
+ title:'Municipio',
+ source: fuente2,
+ projection: 'EPSG:4326',
+ style: Estilo_Lineas,
+ visible: true,
+}); 
+
+var lavista= new ol.View({ center: ol.proj.fromLonLat([-0.79,37.815]),
+zoom: 15});
+
+var mimapa = new ol.Map({
+	target: 'mibloquemapa',
+	layers:[new ol.layer.Group ({title: 'Mapas base', layers: [CapaBase,CapaBaseStamen, CapaBaseBing, MapaRasterIGN, MapaPNOA]}),
+	new ol.layer.Group ({title: 'Superpuestos', layers:
+	[capa_superficial,capa_lineal]})],
+	view: lavista,
+	controls: controles
+});
+var layerSwitcher = new ol.control.LayerSwitcher({tipLabel: 'Leyenda', position: 'right'});
+
+mimapa.addControl(layerSwitcher);
+layerSwitcher.showPanel();
+
+</script>
+</body>
+</html>
